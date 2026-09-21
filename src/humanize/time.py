@@ -325,12 +325,32 @@ def _convert_aware_datetime(
     return value
 
 
-def naturalday(value: dt.date | dt.datetime, format: str = "%b %d") -> str:
+_WEEKDAY_NAMES = (
+    "Monday",
+    "Tuesday",
+    "Wednesday",
+    "Thursday",
+    "Friday",
+    "Saturday",
+    "Sunday",
+)
+
+
+def naturalday(
+    value: dt.date | dt.datetime,
+    format: str = "%b %d",
+    weekdays: bool = False,
+) -> str:
     """Return a natural day.
 
     For date values that are tomorrow, today or yesterday compared to
     present day return representing string. Otherwise, return a string
     formatted according to `format`.
+
+    When ``weekdays`` is true, dates within the surrounding week (2-6 days
+    away) are returned as weekday names instead, e.g. "last Friday" or
+    "this Monday" (issue #102). The default ``weekdays=False`` keeps the
+    previous behaviour unchanged.
 
     """
     import datetime as dt
@@ -359,6 +379,12 @@ def naturalday(value: dt.date | dt.datetime, format: str = "%b %d") -> str:
 
     if delta.days == -1:
         return _("yesterday")
+
+    if weekdays and -6 <= delta.days <= 6:
+        weekday = _(_WEEKDAY_NAMES[value.weekday()])
+        if delta.days < 0:
+            return _("last %s") % weekday
+        return _("this %s") % weekday
 
     return value.strftime(format)
 
