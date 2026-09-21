@@ -35,6 +35,7 @@ classifiers = [
   "Topic :: Text Processing :: General",
 ]
 dynamic = [ "version" ]
+scripts.humanize = "humanize.__main__:main"
 optional-dependencies.tests = [
   "freezegun",
   "pytest>=9",
