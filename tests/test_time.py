@@ -876,3 +876,32 @@ def test_time_unit() -> None:
 )
 def test_rounding_by_fmt(fmt: str, value: float, expected: float) -> None:
     assert time._rounding_by_fmt(fmt, value) == pytest.approx(expected)
+
+
+@freeze_time(FROZEN_DATE)
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        # FROZEN_DATE = 2010-02-02 (a Tuesday)
+        (TODAY, "today"),
+        (TOMORROW, "tomorrow"),
+        (YESTERDAY, "yesterday"),
+        (dt.date(2010, 1, 30), "last Saturday"),
+        (dt.date(2010, 1, 27), "last Wednesday"),  # 6 days ago: boundary
+        (dt.date(2010, 2, 4), "this Thursday"),
+        (dt.date(2010, 2, 8), "this Monday"),  # 6 days ahead: boundary
+        (dt.date(2010, 1, 26), "Jan 26"),  # 7 days ago: falls back to format
+        (dt.date(2010, 2, 9), "Feb 09"),  # 7 days ahead: falls back to format
+        (dt.date(2010, 3, 5), "Mar 05"),
+    ],
+)
+def test_naturalday_weekdays(value: typing.Any, expected: str) -> None:
+    """Opt-in ``weekdays=True`` names nearby weekdays (issue #102)."""
+    assert humanize.naturalday(value, weekdays=True) == expected
+
+
+@freeze_time(FROZEN_DATE)
+def test_naturalday_weekdays_default_unchanged() -> None:
+    """Default output is unchanged when ``weekdays`` is not passed."""
+    assert humanize.naturalday(dt.date(2010, 1, 30)) == "Jan 30"
+    assert humanize.naturalday(dt.date(2010, 2, 4)) == "Feb 04"
