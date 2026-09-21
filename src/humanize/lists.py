@@ -10,10 +10,11 @@ if TYPE_CHECKING:
 __all__ = ["natural_list"]
 
 
-def natural_list(items: Iterable[Any]) -> str:
+def natural_list(items: Iterable[Any], conjunction: str = "and") -> str:
     """Natural list.
 
-    Convert an iterable of items into a human-readable string with commas and 'and'.
+    Convert an iterable of items into a human-readable string with commas and
+    a conjunction ('and' by default, or 'or' for disjunctions).
 
     Examples:
         >>> natural_list(["one", "two", "three"])
@@ -22,19 +23,31 @@ def natural_list(items: Iterable[Any]) -> str:
         'one and two'
         >>> natural_list(["one"])
         'one'
+        >>> natural_list(["one", "two", "three"], conjunction="or")
+        'one, two or three'
+        >>> natural_list(["one", "two"], conjunction="or")
+        'one or two'
 
     Args:
         items (Iterable): An iterable of items.
+        conjunction (str): The word joining the final item — "and" (default)
+            or "or".
 
     Returns:
-        str: A string with commas and 'and' in the right places.
+        str: A string with commas and the conjunction in the right places.
+
+    Raises:
+        ValueError: If ``conjunction`` is not ``"and"`` or ``"or"``.
     """
+    if conjunction not in ("and", "or"):
+        msg = f"conjunction must be 'and' or 'or', got {conjunction!r}"
+        raise ValueError(msg)
     item_list = [str(item) for item in items]
     if not item_list:
         return ""
     if len(item_list) == 1:
         return item_list[0]
     elif len(item_list) == 2:
-        return f"{item_list[0]} and {item_list[1]}"
+        return f"{item_list[0]} {conjunction} {item_list[1]}"
     else:
-        return ", ".join(item_list[:-1]) + f" and {item_list[-1]}"
+        return ", ".join(item_list[:-1]) + f" {conjunction} {item_list[-1]}"
