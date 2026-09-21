@@ -123,9 +123,12 @@ def test_intword_powers() -> None:
         (["3500000000000000000000"], "3.5 sextillion"),
         (["8100000000000000000000000000000000"], "8.1 decillion"),
         (["-8100000000000000000000000000000000"], "-8.1 decillion"),
-        ([1_000_000_000_000_000_000_000_000_000_000_000_000], "1000.0 decillion"),
-        ([1_100_000_000_000_000_000_000_000_000_000_000_000], "1100.0 decillion"),
-        ([2_100_000_000_000_000_000_000_000_000_000_000_000], "2100.0 decillion"),
+        ([1_000_000_000_000_000_000_000_000_000_000_000_000], "1.0 undecillion"),
+        ([1_100_000_000_000_000_000_000_000_000_000_000_000], "1.1 undecillion"),
+        ([2_100_000_000_000_000_000_000_000_000_000_000_000], "2.1 undecillion"),
+        ([10**50], "100.0 quindecillion"),
+        ([10**99], "1.0 duotrigintillion"),
+        ([10**100 - 10**93], "1.0 googol"),
         ([2e100], "2.0 googol"),
         ([None], "None"),
         (["1230000", "%0.2f"], "1.23 million"),
@@ -176,16 +179,20 @@ def test_intword_rounding_rollover() -> None:
         assert humanize.intword(value) == f"1.0 {units[i]}"
         assert humanize.intword(value, "%.0f") == f"1 {units[i]}"
 
-    # The mantissa must never render at or above 1000 for values below a
-    # decillion; a bare "1000.0" is only expected in the sparse gap between
-    # decillion and googol, which has no dedicated unit.
-    for exponent in range(6, 34, 3):
+    # The mantissa must never render at or above 1000: every magnitude up to
+    # duotrigintillion (10**99) has a dedicated unit, and just below a googol
+    # the value carries to "1.0 googol".
+    for exponent in range(6, 100, 3):
         rendered = humanize.intword(10**exponent - 1)
         mantissa = float(rendered.split(" ", 1)[0])
         assert mantissa < 1000
 
-    # The documented decillion..googol gap must be left untouched.
-    assert humanize.intword(10**36) == "1000.0 decillion"
+    # The former decillion..googol gap is now named (#356): the magnitudes
+    # that used to render as huge decillion counts carry the correct unit.
+    assert humanize.intword(10**36) == "1.0 undecillion"
+    assert humanize.intword(10**50) == "100.0 quindecillion"
+    assert humanize.intword(10**99) == "1.0 duotrigintillion"
+    assert humanize.intword(10**100 - 10**93) == "1.0 googol"
     assert humanize.intword(2 * 10**100) == "2.0 googol"
 
 
